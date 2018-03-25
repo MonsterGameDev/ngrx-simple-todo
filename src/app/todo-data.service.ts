@@ -1,20 +1,35 @@
 import { Injectable } from '@angular/core';
 import { Todo } from './todo';
 
+import { Store } from '@ngrx/store';
+
 @Injectable()
 export class TodoDataService {
-  public lastId: number = 0;
+  public lastId = 0;
   public todos: Todo[] = [];
 
-  constructor() {}
+  constructor(private _store: Store<any>) {
+    _store.select('todos').subscribe(todos => this.todos = todos)
+  }
 
   // Simulate POST /todos
-  public addTodo(todo: Todo): TodoDataService {
-    if (!todo.id) {
-      todo.id = ++this.lastId;
-    }
-    this.todos.push(todo);
-    return this;
+  public addTodo(todo: Todo): void {
+    console.log('in addTodo');
+    this._store.dispatch({
+      type: 'ADD_TODO',
+      payload: {
+        id: ++this.lastId,
+        title: todo.title,
+        complete: todo.complete
+      }
+    })
+
+
+    // if (!todo.id) {
+    //   todo.id = ++this.lastId;
+    // }
+    // this.todos.push(todo);
+    // return this;
   }
 
   // Simulate DELETE /todos/:id
@@ -24,7 +39,7 @@ export class TodoDataService {
   }
 
   public toggleTodoComplete(todo: Todo) {
-    let updatedTodo = this._updateTodoById(todo.id, {
+    const updatedTodo = this._updateTodoById(todo.id, {
       complete: !todo.complete
     });
     return updatedTodo;
@@ -40,7 +55,7 @@ export class TodoDataService {
 
   // Simulate PUT /todos/:id
   private _updateTodoById(id: number, values: Object = {}): Todo {
-    let todo = this._getTodoById(id);
+    const todo = this._getTodoById(id);
     if (!todo) {
       return null;
     }
@@ -50,6 +65,7 @@ export class TodoDataService {
 
   // Simulate GET /todos/:id
   private _getTodoById(id: number): Todo {
+    console.log('into _getTodoByID...')
     return this.todos.filter(todo => todo.id === id).pop();
   }
 }
